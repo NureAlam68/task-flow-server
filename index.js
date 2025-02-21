@@ -41,8 +41,23 @@ async function run() {
 
     //task related apis
     app.get('/tasks', async (req, res) => {
-      const result = await taskCollection.find().toArray();
+      const email = req.query.email;
+
+      let query = {};
+
+      if (email) {
+        query = { email: email };
+      }
+
+      const result = await taskCollection.find(query).toArray();
       res.send(result);
+    })
+
+    app.get('/tasks/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await taskCollection.findOne(query);
+      res.send(result)
     })
 
     app.post('/tasks', async (req, res) => {
@@ -55,6 +70,19 @@ async function run() {
       const id = req.params;
       const filter = { _id: new ObjectId(id) }
       const result = await taskCollection.deleteOne(filter);
+      res.send(result)
+    })
+
+    app.patch('/tasks/:id', async (req, res) => {
+      const id = req.params.id;
+      const taskInfo = req.body;
+      const filter = { _id: new ObjectId(id) }
+      const updatedDoc = {
+        $set: taskInfo
+      }
+      const options = { upsert: true }
+
+      const result = await taskCollection.updateOne(filter, updatedDoc, options);
       res.send(result)
     })
 
